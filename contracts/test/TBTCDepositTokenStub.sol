@@ -1,11 +1,11 @@
-pragma solidity ^0.5.10;
+pragma solidity >=0.4.22 <0.7.0;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721Metadata.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-contract TBTCDepositTokenStub is ERC721Metadata {
+contract TBTCDepositTokenStub is ERC721 {
 
-    constructor() 
-        ERC721Metadata("tBTC Deposit Token", "TDT") 
+    constructor()
+        ERC721("tBTC Deposit Token", "TDT")
     public {
         // solium-disable-previous-line no-empty-blocks
     }

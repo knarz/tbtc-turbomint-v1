@@ -7,18 +7,19 @@
     "test": "test"
   },
   "scripts": {
-    "test": "truffle compile && npx mocha --exit --recursive test",
+    "test": "oz compile && mocha --exit --recursive test",
     "justtest": "npx mocha --exit --recursive test"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@openzeppelin/cli": "^2.7.2",
+    "@openzeppelin/contracts": "^3.0.0-rc.0",
     "@openzeppelin/test-environment": "^0.1.2",
+    "@openzeppelin/test-helpers": "^0.5.5",
     "chai": "^4.2.0",
+    "husky": "^4.2.5",
     "mocha": "^7.0.1"
   },
-  "dependencies": {
-    "@openzeppelin/test-helpers": "^0.5.4",
-    "@openzeppelin/contracts": "^2.5.0"
-  }
+  "dependencies": {}
 }

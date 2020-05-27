@@ -1,12 +1,11 @@
-pragma solidity ^0.5.10;
+pragma solidity >=0.4.22 <0.7.0;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
-contract TBTCTokenStub is ERC20Detailed, ERC20 {
+contract TBTCTokenStub is ERC20 {
  
     constructor()
-        ERC20Detailed("Trustless bitcoin", "TBTC", 18)
+        ERC20("Trustless bitcoin", "TBTC")
     public {
         // solium-disable-previous-line no-empty-blocks
     }
@@ -14,13 +13,6 @@ contract TBTCTokenStub is ERC20Detailed, ERC20 {
     function mint(address _account, uint256 _amount) public returns (bool) {
         _mint(_account, _amount);
         return true;
-    }
-    function burnFrom(address _account, uint256 _amount) public {
-        _burnFrom(_account, _amount);
-    }
-
-     function burn(uint256 _amount) public {
-        _burn(msg.sender, _amount);
     }
 
     function zeroBalance() public {
