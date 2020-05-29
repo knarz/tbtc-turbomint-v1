@@ -12,7 +12,8 @@ const TBTCDepositTokenStub = contract.fromArtifact('TBTCDepositTokenStub');
 const DepositStub = contract.fromArtifact('DepositStub');
 
 describe('Turbomint', function () {
-const turbomintFee = 20
+	const turbomintFee = (new BN(10)).mul(new BN(10)).pow(new BN(16))
+
   before(async () => {
     tbtcToken = await TBTCTokenStub.new()
     feeRebateToken = await FeeRebateTokenStub.new()
@@ -25,7 +26,6 @@ const turbomintFee = 20
       tbtcToken.address,
       feeRebateToken.address,
       TBTCDepositToken.address,
-      turbomintFee,
       { from: owner }
     );
     tdtId = await web3.utils.toBN(deposit.address)
@@ -40,7 +40,7 @@ const turbomintFee = 20
     await restoreSnapshot()
   })
 
-  describe('requestTurbomint', function () {
+  describe('openOrder', function () {
     beforeEach(async () => {
       await createSnapshot()
     })
@@ -49,22 +49,24 @@ const turbomintFee = 20
       await restoreSnapshot()
     })
 
-    it('Requests turbomint and correctly transfers TDT', async function () {
+    it('opens the order and correctly transfers TDT', async function () {
+			const fee = new BN('100')
       await TBTCDepositToken.approve(turbomint.address, tdtId, { from: owner })
-      await turbomint.requestTurbomint(tdtId, { from: owner })
+      await turbomint.methods['openOrder(uint256,uint256)'](tdtId, turbomintFee, { from: owner })
 
       expect(await TBTCDepositToken.ownerOf(tdtId)).to.equal(turbomint.address);
     });
 
     it('reverts if TDT is not approved', async function () {
+			const fee = new BN('100')
       await expectRevert(
-        turbomint.requestTurbomint(tdtId, { from: owner }),
+        turbomint.methods['openOrder(uint256,uint256)'](tdtId, turbomintFee, { from: owner }),
         'ERC721: transfer caller is not owner nor approved'
       )
       });
   });
 
-  describe('nopeOut', function () {
+  describe('cancelOrder', function () {
     beforeEach(async () => {
       await createSnapshot()
     })
@@ -73,27 +75,29 @@ const turbomintFee = 20
       await restoreSnapshot()
     })
 
-    it('Nopes out and transfers TDT back to original owner', async function () {
+    it('cancels open order and transfers TDT back to original owner', async function () {
+			const fee = new BN('100')
       await TBTCDepositToken.approve(turbomint.address, tdtId, { from: owner })
-      await turbomint.requestTurbomint(tdtId, { from: owner })
-      await turbomint.nopeOut(tdtId, { from: owner })
+      await turbomint.methods['openOrder(uint256,uint256)'](tdtId, turbomintFee, { from: owner })
+      await turbomint.cancelOrder(tdtId, { from: owner })
 
       expect(await TBTCDepositToken.ownerOf(tdtId)).to.equal(owner);
     });
 
     it('Reverts if there is no open order for the giver TDT', async function () {
         await expectRevert(
-          turbomint.nopeOut(235243, { from: owner }),
+          turbomint.cancelOrder(235243, { from: owner }),
           'No open order for the given TDT id.'
         )
      });
 
      it('Reverts if the caller is not the original TDT owner', async function () {
+			const fee = new BN('100')
       await TBTCDepositToken.approve(turbomint.address, tdtId, { from: owner })
-      await turbomint.requestTurbomint(tdtId, { from: owner })
+      await turbomint.methods['openOrder(uint256,uint256)'](tdtId, turbomintFee, { from: owner })
       await expectRevert(
-        turbomint.nopeOut(tdtId),
-        'Only original TDT holder can nope out.'
+        turbomint.cancelOrder(tdtId),
+        'Only original TDT holder can cancel order.'
       )
      });
   });
@@ -109,8 +113,8 @@ const turbomintFee = 20
 
     it('Nopes out and transfers TDT back to original owner', async function () {
       await TBTCDepositToken.approve(turbomint.address, tdtId, { from: owner })
-      await turbomint.requestTurbomint(tdtId, { from: owner })
-      await turbomint.nopeOut(tdtId, { from: owner })
+			await turbomint.methods['openOrder(uint256,uint256)'](tdtId, turbomintFee, { from: owner })
+      await turbomint.cancelOrder(tdtId, { from: owner })
 
       expect(await TBTCDepositToken.ownerOf(tdtId)).to.equal(owner);
     });
@@ -139,12 +143,12 @@ const turbomintFee = 20
       await tbtcToken.zeroBalance({ from: owner })
 
       await TBTCDepositToken.approve(turbomint.address, tdtId, { from: owner })
-      await turbomint.requestTurbomint(tdtId, { from: owner })
+			await turbomint.methods['openOrder(uint256,uint256)'](tdtId, turbomintFee, { from: owner })
       const tbtcToFill = await turbomint.getTbtcToFill(tdtId)
       await tbtcToken.mint(user, tbtcToFill)
       await tbtcToken.approve(turbomint.address, tbtcToFill, { from: user })
 
-      await turbomint.provideTurbomint(tdtId, { from: user })
+			await turbomint.provideTurbomint(tdtId, { from: user })
 
       await assertBalance.tbtc(owner, tbtcToFill)
       expect(await TBTCDepositToken.ownerOf(tdtId)).to.equal(user);
@@ -159,7 +163,7 @@ const turbomintFee = 20
 
     it('Reverts with insufficient approved balance', async function () {
         await TBTCDepositToken.approve(turbomint.address, tdtId, { from: owner })
-        await turbomint.requestTurbomint(tdtId, { from: owner })
+			await turbomint.methods['openOrder(uint256,uint256)'](tdtId, turbomintFee, { from: owner })
         const tbtcToFill = await turbomint.getTbtcToFill(tdtId)
         await tbtcToken.mint(user, tbtcToFill)
 
